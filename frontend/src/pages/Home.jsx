@@ -154,6 +154,32 @@ const Home = () => {
                     )}
                 </>
             )}
+
+            {/* Mission / Problem-Solution Section */}
+            <div className="mt-32 max-w-4xl mx-auto text-center border-t border-gray-800 pt-20 pb-10">
+                <h2 className="text-4xl font-bold text-primary font-serif mb-8">Why Choose NAAI?</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="bg-gray-800/50 p-8 rounded-xl border border-gray-700 hover:border-primary transition-colors">
+                        <div className="text-5xl mb-4">⏳</div>
+                        <h3 className="text-xl font-bold text-white mb-3">The Problem</h3>
+                        <p className="text-gray-400 leading-relaxed">
+                            Lets face it: **Waiting is outdated.** Walking into a salon only to find a long queue is frustrating.
+                            Calling multiple places to check availability is a hassle. Your time is too valuable to be wasted sitting in a waiting room.
+                        </p>
+                    </div>
+                    <div className="bg-primary/10 p-8 rounded-xl border border-primary/50 hover:bg-primary/20 transition-colors">
+                        <div className="text-5xl mb-4">💈</div>
+                        <h3 className="text-xl font-bold text-primary mb-3">The NAAI Solution</h3>
+                        <p className="text-gray-300 leading-relaxed">
+                            NAAI bridges the gap between you and premium styling. **Book instantly**, show up at your scheduled time,
+                            and walk straight into the chair. We streamline the entire process so you can focus on looking your best without the wait.
+                        </p>
+                    </div>
+                </div>
+                <div className="mt-12">
+                    <p className="text-gray-500 italic text-sm">"Style without the wait. Premium Cuts, on your schedule."</p>
+                </div>
+            </div>
         </div>
     );
 };

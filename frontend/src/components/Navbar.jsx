@@ -9,12 +9,13 @@ const Navbar = () => {
         <nav className="bg-secondary/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 border-b border-gray-800">
             <div className="container mx-auto flex justify-between items-center">
                 <Link to="/" className="text-2xl font-bold text-primary font-serif tracking-widest">
-                    LUXE<span className="text-white">CUTS</span>
+                    NAAI
                 </Link>
-                <div className="space-x-6">
+                <div className="space-x-6 flex items-center">
                     <Link to="/" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Home</Link>
                     {user ? (
                         <>
+                            <span className="text-primary font-serif italic mr-4">Hello, {user.name}</span>
                             {user.role === 'barber' && <Link to="/barber-dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Dashboard</Link>}
                             {user.role === 'admin' && <Link to="/admin-dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Admin</Link>}
                             {user.role === 'user' && <Link to="/dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Bookings</Link>}

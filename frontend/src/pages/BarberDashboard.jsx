@@ -6,10 +6,12 @@ const BarberDashboard = () => {
     const { user } = useContext(AuthContext);
     const [salon, setSalon] = useState(null);
     const [bookings, setBookings] = useState([]);
+    const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Form states
     const [newSlotTime, setNewSlotTime] = useState('');
+    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); // Default today
     const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '' });
     const [message, setMessage] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -38,14 +40,17 @@ const BarberDashboard = () => {
 
     const fetchData = async () => {
         try {
-            // Re-fetching all salons logic (backend could be optimized but sticking to constraint)
-            const res = await api.get('/salons?limit=100'); // Increase limit to find own
+            const res = await api.get('/salons?limit=500');
+            // Better to have /api/salons/mine endpoint, but finding by barberId works for now
             const mySalon = res.data.salons.find(s => s.barberId._id === user._id || s.barberId === user._id);
             setSalon(mySalon);
 
             if (mySalon) {
                 const bookingRes = await api.get(`/bookings/salon/${mySalon._id}`);
                 setBookings(bookingRes.data);
+
+                const slotsRes = await api.get(`/timeslots/${mySalon._id}`);
+                setSlots(slotsRes.data);
             }
         } catch (error) {
             console.error(error);
@@ -75,7 +80,6 @@ const BarberDashboard = () => {
             await api.delete(`/salons/${salon._id}`);
             setSalon(null);
             setMessage('Salon deleted successfully.');
-            // Ideally clear bookings state too 
             setBookings([]);
         } catch (error) {
             setMessage('Failed to delete salon');
@@ -84,27 +88,42 @@ const BarberDashboard = () => {
 
     const handleAddSlot = async (e) => {
         e.preventDefault();
-        if (!salon || !newSlotTime) return;
+        if (!salon || !newSlotTime || !newSlotDate) return;
 
         try {
-            const date = new Date();
-            const [hours, minutes] = newSlotTime.split(':');
-            date.setHours(hours, minutes, 0, 0);
-
-            if (date < new Date()) {
-                date.setDate(date.getDate() + 1);
-            }
+            const date = new Date(`${newSlotDate}T${newSlotTime}`);
 
             await api.post('/timeslots', {
                 salonId: salon._id,
                 startTime: date.toISOString()
             });
             setMessage('Slot added!');
-            setNewSlotTime('');
+            // Refresh slots
+            const slotsRes = await api.get(`/timeslots/${salon._id}`);
+            setSlots(slotsRes.data);
         } catch (error) {
             setMessage('Error adding slot');
         }
     };
+
+    const handleDeleteSlot = async (slotId) => {
+        if (!window.confirm("Delete this slot?")) return;
+        try {
+            await api.delete(`/timeslots/${slotId}`);
+            setSlots(slots.filter(s => s._id !== slotId));
+            setMessage('Slot deleted');
+        } catch (error) {
+            setMessage('Error deleting slot');
+        }
+    };
+
+    // Group slots by date for calendar view
+    const groupedSlots = slots.reduce((acc, slot) => {
+        const date = new Date(slot.startTime).toLocaleDateString();
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(slot);
+        return acc;
+    }, {});
 
     if (loading) return <div className="p-10 text-center text-primary">Loading...</div>;
 
@@ -167,12 +186,47 @@ const BarberDashboard = () => {
                             )}
 
                             <div className="border-t border-gray-700 pt-6">
-                                <h3 className="font-semibold mb-4 text-primary tracking-wide uppercase text-sm">Add Time Slot (Tomorrow)</h3>
+                                <h3 className="font-semibold mb-4 text-primary tracking-wide uppercase text-sm">Add Time Slot</h3>
                                 <form onSubmit={handleAddSlot} className="flex gap-4">
+                                    <input type="date" className="premium-input w-1/3"
+                                        value={newSlotDate} onChange={e => setNewSlotDate(e.target.value)} required />
                                     <input type="time" className="premium-input flex-1"
                                         value={newSlotTime} onChange={e => setNewSlotTime(e.target.value)} required />
                                     <button type="submit" className="premium-btn">Add Slot</button>
                                 </form>
+                            </div>
+                        </div>
+
+                        {/* Calendar / Slot List */}
+                        <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-lg">
+                            <h2 className="text-xl font-bold mb-4 text-white font-serif">Manage Slots</h2>
+                            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                {Object.keys(groupedSlots).length === 0 ? <p className="text-gray-500">No slots created.</p> :
+                                    Object.entries(groupedSlots).map(([date, daySlots]) => (
+                                        <div key={date}>
+                                            <h4 className="text-primary font-bold mb-2">{date}</h4>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                                {daySlots.map(slot => (
+                                                    <div key={slot._id} className={`p-2 rounded border text-center relative group
+                                                        ${slot.isBooked ? 'bg-red-900/20 border-red-900 text-red-400' : 'bg-green-900/20 border-green-900 text-green-400'}
+                                                    `}>
+                                                        <span className="text-sm font-semibold">
+                                                            {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                        {!slot.isBooked && (
+                                                            <button
+                                                                onClick={() => handleDeleteSlot(slot._id)}
+                                                                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                }
                             </div>
                         </div>
                     </div>
