@@ -11,9 +11,42 @@ const BarberDashboard = () => {
 
     // Form states
     const [newSlotTime, setNewSlotTime] = useState('');
-    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '', image: '' }); // Added image field
+    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '', image: '' });
+    const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+
+    const uploadFileHandler = async (e) => {
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append('image', file);
+        setUploading(true);
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            };
+            const { data } = await api.post('/upload', formData, config);
+            // Result is like "/uploads/image.jpg"
+            // Since backend runs on 5001 and frontend on 5173, we need to ensure the path is full URL or handled by proxy
+            // But typically MERN setup: store path, and when displaying, prepend backend URL if needed.
+            // However, our image src often expects full URL.
+            // Let's store the relative path and assume we prepend API_URL constant or similar if needed, 
+            // OR store full local URL. For simplicity, let's prepend backend URL here if we can knowing it, but hardcoding is bad.
+            // Actually, let's just save the relative path "/uploads/..." and standardise on that.
+            // BUT our existing images are absolute https:// URLs or /default-salon.jpg.
+            // So we should probably prepend backend base URL.
+
+            // Hack for dev: Assume localhost:5001
+            setSalonData({ ...salonData, image: `http://localhost:5001${data}` });
+            setUploading(false);
+        } catch (error) {
+            console.error(error);
+            setUploading(false);
+            setMessage('File upload failed');
+        }
+    };
 
     const handleUpdateSalon = async (e) => {
         e.preventDefault();
@@ -160,8 +193,22 @@ const BarberDashboard = () => {
                             value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
                         <input type="text" placeholder="City" className="premium-input"
                             value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
-                        <input type="text" placeholder="Image URL (Leave empty for default)" className="premium-input"
-                            value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
+
+                        <div className="space-y-2">
+                            <label className="text-gray-400 text-sm ml-1">Salon Image</label>
+                            <div className="flex gap-2">
+                                <input type="text" placeholder="Enter URL" className="premium-input flex-1"
+                                    value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
+                                <div className="relative">
+                                    <input type="file" onChange={uploadFileHandler} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                    <button type="button" className="premium-btn px-4 h-full flex items-center justify-center whitespace-nowrap bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white shadow-none">
+                                        {uploading ? 'Uploading...' : 'Upload'}
+                                    </button>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 ml-1">Or leave empty for default</p>
+                        </div>
+
                         <textarea placeholder="Description" className="premium-input h-32"
                             value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
                         <button type="submit" className="premium-btn w-full">Create Salon</button>
@@ -189,8 +236,21 @@ const BarberDashboard = () => {
                                         value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
                                     <input type="text" placeholder="City" className="premium-input"
                                         value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
-                                    <input type="text" placeholder="Image URL (Leave empty for default)" className="premium-input"
-                                        value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
+
+                                    <div className="space-y-2">
+                                        <label className="text-gray-400 text-sm ml-1">Salon Image</label>
+                                        <div className="flex gap-2">
+                                            <input type="text" placeholder="Enter URL" className="premium-input flex-1"
+                                                value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
+                                            <div className="relative">
+                                                <input type="file" onChange={uploadFileHandler} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                                <button type="button" className="premium-btn px-4 h-full flex items-center justify-center whitespace-nowrap bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white shadow-none">
+                                                    {uploading ? '...' : 'Upload'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <textarea placeholder="Description" className="premium-input h-24"
                                         value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
                                     <div className="flex gap-2">
