@@ -13,8 +13,12 @@
 }
 
 body {
-  @apply bg-gray-900 text-gray-100 font-sans;
-  background-image: url('./assets/bg.jpg');
+  background-color: #0f172a;
+  /* Slate 900 fallback */
+  color: #f3f4f6;
+  /* Gray 100 fallback */
+  font-family: "Outfit", sans-serif;
+  background-image: url('/bg.jpg');
   background-size: 300px;
   /* Tiled pattern */
   background-repeat: repeat;

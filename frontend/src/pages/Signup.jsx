@@ -22,56 +22,38 @@ const Signup = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-gray-800/80 backdrop-blur-md p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+                <h2 className="text-3xl font-bold mb-6 text-center text-primary font-serif">Join NAAI</h2>
+                {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-gray-700">Name</label>
-                        <input
-                            type="text"
-                            className="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
+                        <label className="block text-sm font-medium text-gray-300">Full Name</label>
+                        <input type="text" className="premium-input mt-1"
+                            value={name} onChange={(e) => setName(e.target.value)} required />
                     </div>
                     <div>
-                        <label className="block text-gray-700">Email</label>
-                        <input
-                            type="email"
-                            className="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
+                        <label className="block text-sm font-medium text-gray-300">Email Address</label>
+                        <input type="email" className="premium-input mt-1"
+                            value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
                     <div>
-                        <label className="block text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            className="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <label className="block text-sm font-medium text-gray-300">Password</label>
+                        <input type="password" className="premium-input mt-1"
+                            value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
                     <div>
-                        <label className="block text-gray-700">I am a:</label>
-                        <select
-                            className="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                        >
-                            <option value="user">User</option>
+                        <label className="block text-sm font-medium text-gray-300">I am a...</label>
+                        <select className="premium-input mt-1" value={role} onChange={(e) => setRole(e.target.value)}>
+                            <option value="user">Customer</option>
                             <option value="barber">Barber</option>
                         </select>
                     </div>
-                    <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
-                        Sign Up
-                    </button>
+                    <button type="submit" className="premium-btn w-full mt-6">Create Account</button>
                 </form>
+                <div className="mt-6 text-center text-sm text-gray-400">
+                    Already have an account? <Link to="/login" className="text-primary hover:underline">Log in</Link>
+                </div>
             </div>
         </div>
     );
