@@ -11,15 +11,23 @@ const BarberDashboard = () => {
 
     // Form states
     const [newSlotTime, setNewSlotTime] = useState('');
-    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); // Default today
-    const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '' });
+    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '', image: '' }); // Added image field
     const [message, setMessage] = useState('');
     const [isEditing, setIsEditing] = useState(false);
 
     const handleUpdateSalon = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.put(`/salons/${salon._id}`, salonData);
+            const payload = { ...salonData };
+            // If image is empty/default-salon.jpg, ensure we keep it consistent or allow updating
+            if (!payload.image) {
+                payload.images = ['/default-salon.jpg'];
+            } else {
+                payload.images = [payload.image];
+            }
+            delete payload.image; // Cleanup before sending
+
+            const res = await api.put(`/salons/${salon._id}`, payload);
             setSalon(res.data);
             setMessage('Salon updated successfully!');
             setIsEditing(false);
@@ -33,7 +41,8 @@ const BarberDashboard = () => {
             name: salon.name,
             address: salon.address,
             city: salon.city,
-            description: salon.description
+            description: salon.description,
+            image: salon.images && salon.images.length > 0 ? salon.images[0] : ''
         });
         setIsEditing(true);
     };
@@ -66,7 +75,15 @@ const BarberDashboard = () => {
     const handleCreateSalon = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/salons', salonData);
+            const payload = { ...salonData };
+            if (!payload.image) {
+                payload.images = ['/default-salon.jpg'];
+            } else {
+                payload.images = [payload.image];
+            }
+            delete payload.image;
+
+            await api.post('/salons', payload);
             setMessage('Salon created successfully!');
             fetchData();
         } catch (error) {
@@ -143,6 +160,8 @@ const BarberDashboard = () => {
                             value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
                         <input type="text" placeholder="City" className="premium-input"
                             value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
+                        <input type="text" placeholder="Image URL (Leave empty for default)" className="premium-input"
+                            value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
                         <textarea placeholder="Description" className="premium-input h-32"
                             value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
                         <button type="submit" className="premium-btn w-full">Create Salon</button>
@@ -170,6 +189,8 @@ const BarberDashboard = () => {
                                         value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
                                     <input type="text" placeholder="City" className="premium-input"
                                         value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
+                                    <input type="text" placeholder="Image URL (Leave empty for default)" className="premium-input"
+                                        value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
                                     <textarea placeholder="Description" className="premium-input h-24"
                                         value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
                                     <div className="flex gap-2">
@@ -179,6 +200,7 @@ const BarberDashboard = () => {
                                 </form>
                             ) : (
                                 <>
+                                    <img src={salon.images[0]} alt={salon.name} className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700" />
                                     <h2 className="text-2xl font-bold mb-2 text-white font-serif">{salon.name}</h2>
                                     <p className="text-gray-400 mb-4">{salon.address}, {salon.city}</p>
                                     <p className="text-gray-500 text-sm mb-6">{salon.description}</p>
