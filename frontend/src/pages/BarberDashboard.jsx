@@ -12,6 +12,29 @@ const BarberDashboard = () => {
     const [newSlotTime, setNewSlotTime] = useState('');
     const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '' });
     const [message, setMessage] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+
+    const handleUpdateSalon = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.put(`/salons/${salon._id}`, salonData);
+            setSalon(res.data);
+            setMessage('Salon updated successfully!');
+            setIsEditing(false);
+        } catch (error) {
+            setMessage('Error updating salon');
+        }
+    };
+
+    const startEditing = () => {
+        setSalonData({
+            name: salon.name,
+            address: salon.address,
+            city: salon.city,
+            description: salon.description
+        });
+        setIsEditing(true);
+    };
 
     const fetchData = async () => {
         try {
@@ -111,14 +134,37 @@ const BarberDashboard = () => {
                     {/* Salon Management */}
                     <div className="space-y-8">
                         <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-lg relative group">
-                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onClick={startEditing} className="text-blue-500 hover:text-blue-400 text-sm uppercase font-bold tracking-widest border border-blue-900 px-3 py-1 rounded hover:bg-blue-900/20 transition-all">
+                                    Edit
+                                </button>
                                 <button onClick={handleDeleteSalon} className="text-red-500 hover:text-red-400 text-sm uppercase font-bold tracking-widest border border-red-900 px-3 py-1 rounded hover:bg-red-900/20 transition-all">
-                                    Delete Salon
+                                    Delete
                                 </button>
                             </div>
-                            <h2 className="text-2xl font-bold mb-2 text-white font-serif">{salon.name}</h2>
-                            <p className="text-gray-400 mb-4">{salon.address}, {salon.city}</p>
-                            <p className="text-gray-500 text-sm mb-6">{salon.description}</p>
+
+                            {isEditing ? (
+                                <form onSubmit={handleUpdateSalon} className="space-y-4 mb-4">
+                                    <input type="text" placeholder="Salon Name" className="premium-input"
+                                        value={salonData.name} onChange={e => setSalonData({ ...salonData, name: e.target.value })} required />
+                                    <input type="text" placeholder="Address" className="premium-input"
+                                        value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
+                                    <input type="text" placeholder="City" className="premium-input"
+                                        value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
+                                    <textarea placeholder="Description" className="premium-input h-24"
+                                        value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
+                                    <div className="flex gap-2">
+                                        <button type="submit" className="premium-btn flex-1">Save Changes</button>
+                                        <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-600 text-gray-300 rounded-full hover:bg-gray-700">Cancel</button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
+                                    <h2 className="text-2xl font-bold mb-2 text-white font-serif">{salon.name}</h2>
+                                    <p className="text-gray-400 mb-4">{salon.address}, {salon.city}</p>
+                                    <p className="text-gray-500 text-sm mb-6">{salon.description}</p>
+                                </>
+                            )}
 
                             <div className="border-t border-gray-700 pt-6">
                                 <h3 className="font-semibold mb-4 text-primary tracking-wide uppercase text-sm">Add Time Slot (Tomorrow)</h3>

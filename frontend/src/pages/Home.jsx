@@ -9,6 +9,8 @@ const Home = () => {
 
     // Filters & Pagination
     const [search, setSearch] = useState('');
+    const [city, setCity] = useState('');
+    const [sort, setSort] = useState('newest');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalSalons, setTotalSalons] = useState(0);
@@ -16,7 +18,7 @@ const Home = () => {
     const fetchSalons = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/salons?page=${page}&limit=2&search=${search}`);
+            const res = await api.get(`/salons?page=${page}&limit=2&search=${search}&city=${city}&sort=${sort}`);
             setSalons(res.data.salons);
             setTotalPages(res.data.totalPages);
             setTotalSalons(res.data.totalSalons);
@@ -33,7 +35,8 @@ const Home = () => {
 
     useEffect(() => {
         fetchSalons();
-    }, [page]); // Re-fetch when page changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, sort]); // Fetch on page or sort change. For search/city, wait for explicit submit or add here if instant.
 
     // Animation Effect
     useEffect(() => {
@@ -58,16 +61,31 @@ const Home = () => {
                 <h1 className="text-5xl font-bold mb-4 text-primary tracking-tight">Discover Excellence</h1>
                 <p className="text-gray-400 text-lg">Book appointments at the finest salons near you.</p>
 
-                {/* Search Bar */}
-                <form onSubmit={handleSearch} className="mt-8 flex justify-center max-w-lg mx-auto gap-2">
+                {/* Search & Filter Bar */}
+                <form onSubmit={handleSearch} className="mt-8 flex flex-col md:flex-row justify-center max-w-4xl mx-auto gap-4 items-center">
                     <input
                         type="text"
-                        placeholder="Search salons or cities..."
-                        className="premium-input"
+                        placeholder="Search salons..."
+                        className="premium-input md:w-1/3"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
-                    <button type="submit" className="premium-btn">Search</button>
+                    <input
+                        type="text"
+                        placeholder="City filter..."
+                        className="premium-input md:w-1/4"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                    />
+                    <select
+                        className="premium-input md:w-1/4"
+                        value={sort}
+                        onChange={(e) => setSort(e.target.value)}
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                    <button type="submit" className="premium-btn md:w-auto w-full">Search</button>
                 </form>
             </div>
 
