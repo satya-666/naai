@@ -4,6 +4,7 @@ import AuthContext from '../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
+    //start
 
     return (
         <nav className="bg-secondary/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 border-b border-gray-800">
