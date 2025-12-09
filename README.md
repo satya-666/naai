@@ -57,3 +57,12 @@ export default defineConfig({
 }
 ```
 # naai
+
+Frontend Hosted Link:-
+    https://naai-kohl.vercel.app/
+Backend Hosted Link:-
+    https://dashboard.render.com/web/srv-d4rjjks9c44c7391ja80/deploys/dep-d4rjjlc9c44c7391jaig?r=2025-12-08%4020%3A48%3A27%7E2025-12-08%4020%3A51%3A40
+Database Hosted Link:-
+    https://cloud.mongodb.com/v2/69370f549fd0c206d0a387b3#/explorer/693710cca4599b25a2db50d5/salon_booking/users/find
+
+
