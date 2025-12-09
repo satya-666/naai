@@ -11,7 +11,7 @@ router.post('/', protect, async (req, res) => {
     try {
         const { salonId, slotId } = req.body;
 
-        // Find slot
+        // Find slot if avl
         const slot = await TimeSlot.findById(slotId);
         if (!slot) {
             return res.status(404).json({ message: 'Slot not found' });
