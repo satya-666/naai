@@ -1,31 +1,51 @@
-import { Link } from 'react-router-dom';
-import { useContext } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
 import AuthContext from '../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
-    //start
+    const [scrolled, setScrolled] = useState(false);
+    const location = useLocation();
+
+    // Add shadow on scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 10) {
+                setScrolled(true);
+            } else {
+                setScrolled(false);
+            }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <nav className="bg-secondary/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 border-b border-gray-800">
-            <div className="container mx-auto flex justify-between items-center">
-                <Link to="/" className="text-2xl font-bold text-primary font-serif tracking-widest">
-                    NAAI
+        <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 py-3' : 'bg-transparent py-5'}`}>
+            <div className="container mx-auto px-6 flex justify-between items-center">
+                <Link to="/" className="text-3xl font-black tracking-tighter text-gray-900 flex gap-1 items-center">
+                    <span className="text-primary">NAAI</span>
                 </Link>
-                <div className="space-x-6 flex items-center">
-                    <Link to="/" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Home</Link>
+
+                <div className="hidden md:flex items-center space-x-8">
+                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">Find Salons</Link>
+                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">For Barbers</Link>
+                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">About Us</Link>
+                </div>
+
+                <div className="flex items-center space-x-6">
                     {user ? (
                         <>
-                            <span className="text-primary font-serif italic mr-4">Hello, {user.name}</span>
-                            {user.role === 'barber' && <Link to="/barber-dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Dashboard</Link>}
-                            {user.role === 'admin' && <Link to="/admin-dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Admin</Link>}
-                            {user.role === 'user' && <Link to="/dashboard" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Bookings</Link>}
-                            <button onClick={logout} className="border border-red-500 text-red-500 px-4 py-1 rounded-full hover:bg-red-500 hover:text-white transition uppercase text-xs font-bold tracking-wider">Logout</button>
+                            <span className="hidden md:block text-gray-900 font-medium">Hi, {user.name}</span>
+                            {user.role === 'barber' && <Link to="/barber-dashboard" className="text-gray-600 hover:text-primary font-medium">Dashboard</Link>}
+                            {user.role === 'admin' && <Link to="/admin-dashboard" className="text-gray-600 hover:text-primary font-medium">Admin</Link>}
+                            {user.role === 'user' && <Link to="/dashboard" className="text-gray-600 hover:text-primary font-medium">My Bookings</Link>}
+                            <button onClick={logout} className="text-gray-600 hover:text-red-500 font-medium transition-colors">Logout</button>
                         </>
                     ) : (
                         <>
-                            <Link to="/login" className="text-gray-300 hover:text-primary transition uppercase text-xs tracking-widest font-semibold">Login</Link>
-                            <Link to="/signup" className="bg-primary text-black px-5 py-2 rounded-full hover:bg-yellow-500 transition uppercase text-xs font-bold tracking-wider shadow-lg shadow-yellow-900/20">Sign Up</Link>
+                            <Link to="/login" className="text-gray-900 font-medium hover:text-primary transition-colors">Log In</Link>
+                            <Link to="/signup" className="btn-primary py-2 px-6 text-sm font-bold shadow-none hover:shadow-lg">Get Started</Link>
                         </>
                     )}
                 </div>

@@ -7,21 +7,10 @@ const Home = () => {
     const [salons, setSalons] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Filters & Pagination
-    const [search, setSearch] = useState('');
-    const [city, setCity] = useState('');
-    const [sort, setSort] = useState('newest');
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalSalons, setTotalSalons] = useState(0);
-
     const fetchSalons = async () => {
-        setLoading(true);
         try {
-            const res = await api.get(`/salons?page=${page}&limit=2&search=${search}&city=${city}&sort=${sort}`);
+            const res = await api.get(`/salons?limit=3&sort=newest`);
             setSalons(res.data.salons);
-            setTotalPages(res.data.totalPages);
-            setTotalSalons(res.data.totalSalons);
         } catch (error) {
             console.error(error);
         } finally {
@@ -29,157 +18,115 @@ const Home = () => {
         }
     };
 
-    // Debounce search or just fetch when input blur/enter? 
-    // For simplicity, let's use a "Search" button or useEffect on delay.
-    // Let's use useEffect for page change, and submit for search.
-
     useEffect(() => {
         fetchSalons();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page, sort]); // Fetch on page or sort change. For search/city, wait for explicit submit or add here if instant.
+    }, []);
 
-    // Animation Effect
     useEffect(() => {
         if (!loading) {
-            gsap.fromTo(".salon-card",
-                { opacity: 0, y: 50 },
-                { opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: "power3.out" }
+            gsap.fromTo(".fade-in-up",
+                { opacity: 0, y: 30 },
+                { opacity: 1, y: 0, stagger: 0.2, duration: 0.8, ease: "power2.out" }
             );
         }
-    }, [loading, salons]);
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        setPage(1); // Reset to page 1 on search
-        fetchSalons();
-    };
+    }, [loading]);
 
     return (
-        <div className="container mx-auto p-6 min-h-screen">
-            {/* Header Section */}
-            <div className="text-center mb-12">
-                <h1 className="text-5xl font-bold mb-4 text-primary tracking-tight">Discover Excellence</h1>
-                <p className="text-gray-400 text-lg">Book appointments at the finest salons near you.</p>
-
-                {/* Search & Filter Bar */}
-                <form onSubmit={handleSearch} className="mt-8 flex flex-col md:flex-row justify-center max-w-4xl mx-auto gap-4 items-center">
-                    <input
-                        type="text"
-                        placeholder="Search salons..."
-                        className="premium-input md:w-1/3"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="City filter..."
-                        className="premium-input md:w-1/4"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                    />
-                    <select
-                        className="premium-input md:w-1/4"
-                        value={sort}
-                        onChange={(e) => setSort(e.target.value)}
-                    >
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                    </select>
-                    <button type="submit" className="premium-btn md:w-auto w-full">Search</button>
-                </form>
-            </div>
-
-            {/* Content */}
-            {loading ? (
-                <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="pb-20">
+            {/* Hero Section */}
+            <section className="pt-20 pb-32 flex flex-col items-center justify-center text-center px-6">
+                <h1 className="text-6xl md:text-8xl font-black text-gray-900 tracking-tight mb-6 fade-in-up">
+                    Find Your Perfect <br /> Barber
+                </h1>
+                <p className="text-xl text-gray-600 mb-10 max-w-2xl fade-in-up">
+                    Discover and book the best local professionals on the leading booking platform.
+                </p>
+                <div className="fade-in-up">
+                    <Link to="/signup" className="btn-primary text-lg px-10 py-4">Get Started</Link>
                 </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <p className="mt-6 text-sm text-gray-500 fade-in-up">Book in seconds. No waiting in line.</p>
+            </section>
+
+            {/* Feature Section 1 */}
+            <section className="bg-secondary/30 py-24">
+                <div className="container-custom grid md:grid-cols-2 gap-16 items-center">
+                    <div className="order-2 md:order-1">
+                        <div className="bg-white p-8 rounded-2xl shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                            {/* Placeholder for feature image */}
+                            <div className="bg-gray-100 rounded-xl h-64 w-full flex items-center justify-center text-gray-400">
+                                Booking Interface Preview
+                            </div>
+                        </div>
+                    </div>
+                    <div className="order-1 md:order-2">
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Experience Premium Service</h2>
+                        <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                            Intuitive search and booking tools. Effortlessly find salons, check availability, and book appointments in seconds.
+                        </p>
+                        <ul className="space-y-4 mb-8">
+                            <li className="flex items-center gap-3 text-gray-700 font-medium">
+                                <span className="text-primary text-xl">→</span> Instant Booking Confirmation
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium">
+                                <span className="text-primary text-xl">→</span> Real-time Availability
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700 font-medium">
+                                <span className="text-primary text-xl">→</span> Verified Reviews
+                            </li>
+                        </ul>
+                        <Link to="/signup" className="btn-secondary">Details</Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Salons / Templates Section */}
+            <section className="py-24 container-custom">
+                <div className="text-center mb-16">
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Choose a professional</h2>
+                    <p className="text-lg text-gray-600">Top rated salons and stylists ready for you.</p>
+                </div>
+
+                {loading ? (
+                    <div className="flex justify-center p-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+                    </div>
+                ) : (
+                    <div className="grid md:grid-cols-3 gap-8">
                         {salons.map((salon) => (
-                            <div key={salon._id} className="salon-card premium-card group">
-                                <div className="relative overflow-hidden h-64">
+                            <div key={salon._id} className="card-minimal group cursor-pointer">
+                                <div className="h-64 overflow-hidden rounded-xl mb-6 relative">
                                     <img
                                         src={salon.images[0] || "https://via.placeholder.com/600x400"}
                                         alt={salon.name}
-                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                                    <div className="absolute bottom-0 left-0 p-6">
-                                        <h2 className="text-2xl font-bold text-white mb-1 group-hover:text-primary transition-colors">{salon.name}</h2>
-                                        <p className="text-gray-300 text-sm flex items-center gap-1">📍 {salon.city}</p>
+                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                        {salon.city}
                                     </div>
                                 </div>
-                                <div className="p-6">
-                                    <p className="text-gray-400 mb-6 line-clamp-2 h-12">{salon.description}</p>
-                                    <div className="flex justify-between items-center">
-                                        <Link
-                                            to={`/salon/${salon._id}`}
-                                            className="w-full text-center border border-gray-600 text-gray-300 py-3 rounded-lg hover:border-primary hover:text-primary hover:bg-gray-800/50 transition-all uppercase text-sm font-bold tracking-widest"
-                                        >
-                                            View Details
-                                        </Link>
-                                    </div>
-                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">{salon.name}</h3>
+                                <p className="text-gray-500 line-clamp-2 mb-6">{salon.description}</p>
+                                <Link to={`/salon/${salon._id}`} className="text-primary font-bold hover:underline underline-offset-4 flex items-center gap-2">
+                                    View Details <span>→</span>
+                                </Link>
                             </div>
                         ))}
                     </div>
+                )}
 
-                    {salons.length === 0 && <p className="text-center text-gray-500 mt-10 text-xl font-serif">No salons found matching your criteria.</p>}
-
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center mt-16 gap-4">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`px-4 py-2 rounded-lg border text-sm font-bold uppercase tracking-wider transition-all
-                                    ${page === 1 ? 'border-gray-800 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-primary hover:text-primary'}
-                                `}
-                            >
-                                Previous
-                            </button>
-                            <span className="flex items-center text-gray-400 font-serif px-2">Page {page} of {totalPages}</span>
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`px-4 py-2 rounded-lg border text-sm font-bold uppercase tracking-wider transition-all
-                                    ${page === totalPages ? 'border-gray-800 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-primary hover:text-primary'}
-                                `}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* Mission / Problem-Solution Section */}
-            <div className="mt-32 max-w-4xl mx-auto text-center border-t border-gray-800 pt-20 pb-10">
-                <h2 className="text-4xl font-bold text-primary font-serif mb-8">Why Choose NAAI?</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="bg-gray-800/50 p-8 rounded-xl border border-gray-700 hover:border-primary transition-colors">
-                        <div className="text-5xl mb-4">⏳</div>
-                        <h3 className="text-xl font-bold text-white mb-3">The Problem</h3>
-                        <p className="text-gray-400 leading-relaxed">
-                            Lets face it: **Waiting is outdated.** Walking into a salon only to find a long queue is frustrating.
-                            Calling multiple places to check availability is a hassle. Your time is too valuable to be wasted sitting in a waiting room.
-                        </p>
-                    </div>
-                    <div className="bg-primary/10 p-8 rounded-xl border border-primary/50 hover:bg-primary/20 transition-colors">
-                        <div className="text-5xl mb-4">💈</div>
-                        <h3 className="text-xl font-bold text-primary mb-3">The NAAI Solution</h3>
-                        <p className="text-gray-300 leading-relaxed">
-                            NAAI bridges the gap between you and premium styling. **Book instantly**, show up at your scheduled time,
-                            and walk straight into the chair. We streamline the entire process so you can focus on looking your best without the wait.
-                        </p>
-                    </div>
+                <div className="text-center mt-12">
+                    <Link to="/search" className="btn-secondary">View All Professionals</Link>
                 </div>
-                <div className="mt-12">
-                    <p className="text-gray-500 italic text-sm">"Style without the wait. Premium Cuts, on your schedule."</p>
+            </section>
+
+            {/* CTA Section */}
+            <section className="bg-primary py-24 text-center text-white">
+                <div className="container-custom">
+                    <h2 className="text-4xl md:text-6xl font-bold mb-8">Ready to get started?</h2>
+                    <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">Join thousands of others who have already booked their next appointment with ease.</p>
+                    <Link to="/signup" className="bg-white text-primary font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition-colors shadow-xl">Start Booking Now</Link>
                 </div>
-            </div>
+            </section>
         </div>
     );
 };

@@ -1,0 +1,19 @@
+{
+  "name": "baal_aa",
+  "version": "1.0.0",
+  "description": "A full-stack salon / haircut appointment booking platform.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm start --prefix backend",
+    "client": "npm run dev --prefix frontend",
+    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
