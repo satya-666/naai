@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking');
 const TimeSlot = require('../models/TimeSlot');
+const Salon = require('../models/Salon');
 const { protect, barber } = require('../middleware/authMiddleware');
 
 // @desc    Create booking
@@ -11,19 +12,38 @@ router.post('/', protect, async (req, res) => {
     try {
         const { salonId, slotId } = req.body;
 
-        // Find slot if avl
-        const slot = await TimeSlot.findById(slotId);
+        if (req.user.role !== 'user') {
+            return res.status(403).json({ message: 'Only customers can book appointments' });
+        }
+
+        if (!salonId || !slotId) {
+            return res.status(400).json({ message: 'Salon and slot are required' });
+        }
+
+        const salon = await Salon.findById(salonId);
+        if (!salon) {
+            return res.status(404).json({ message: 'Salon not found' });
+        }
+
+        const slot = await TimeSlot.findOneAndUpdate(
+            { _id: slotId, salonId, isBooked: false, startTime: { $gt: new Date() } },
+            { isBooked: true },
+            { new: true }
+        );
+
         if (!slot) {
+            const existingSlot = await TimeSlot.findById(slotId);
+            if (existingSlot && existingSlot.salonId.toString() !== salonId) {
+                return res.status(400).json({ message: 'Slot does not belong to this salon' });
+            }
+            if (existingSlot && existingSlot.isBooked) {
+                return res.status(400).json({ message: 'Slot unavailable' });
+            }
+            if (existingSlot && existingSlot.startTime <= new Date()) {
+                return res.status(400).json({ message: 'This slot has already passed' });
+            }
             return res.status(404).json({ message: 'Slot not found' });
         }
-
-        if (slot.isBooked) {
-            return res.status(400).json({ message: 'Slot unavailable' });
-        }
-
-        // Mark slot as booked
-        slot.isBooked = true;
-        await slot.save();
 
         const booking = await Booking.create({
             userId: req.user.id,

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import AuthContext from '../context/AuthContext';
 
@@ -32,7 +32,11 @@ const SalonDetails = () => {
 
     const handleBook = async (slotId) => {
         if (!user) {
-            navigate('/login');
+            navigate('/login', { state: { from: `/salon/${id}` } });
+            return;
+        }
+        if (user.role !== 'user') {
+            setMessage('Only customer accounts can book salon appointments.');
             return;
         }
         setBookingLoading(true);
@@ -50,62 +54,100 @@ const SalonDetails = () => {
         }
     };
 
-    if (loading) return <div className="text-center p-10">Loading...</div>;
-    if (!salon) return <div className="text-center p-10">Salon not found</div>;
+    if (loading) return <div className="p-10 text-center text-gray-600">Loading salon...</div>;
+    if (!salon) return <div className="p-10 text-center text-gray-600">Salon not found</div>;
+
+    const now = new Date();
+    const openSlots = slots.filter(slot => !slot.isBooked && new Date(slot.startTime) > now);
+    const unavailableSlots = slots.filter(slot => slot.isBooked || new Date(slot.startTime) <= now);
+
+    const formatSlotDate = (dateValue) => new Date(dateValue).toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+    });
+
+    const formatSlotTime = (dateValue) => new Date(dateValue).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 
     return (
-        <div className="container mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-6 text-primary font-serif">{salon.name}</h1>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                {/* Salon Info */}
+        <main className="bg-bg-light pb-16">
+            <section className="container-custom py-10">
+                <Link to="/search" className="font-semibold text-primary hover:text-primary-dark">Back to search</Link>
+                <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_0.95fr]">
                 <div>
                     <img
-                        src={salon.images[0] || "https://via.placeholder.com/600x400"}
+                        src={salon.images?.[0] || "https://via.placeholder.com/600x400"}
                         alt={salon.name}
-                        className="w-full h-80 object-cover rounded-xl shadow-lg mb-6 border border-gray-700"
+                        className="mb-6 h-96 w-full rounded-3xl border border-gray-200 object-cover shadow-xl"
                     />
-                    <div className="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-sm border border-gray-700">
-                        <p className="text-lg text-gray-300 mb-2 font-semibold">📍 {salon.address}, {salon.city}</p>
-                        <p className="text-gray-400 leading-relaxed">{salon.description}</p>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <p className="text-sm font-bold uppercase tracking-widest text-primary">{salon.city}</p>
+                        <h1 className="mt-2 text-4xl font-black text-gray-950 md:text-5xl">{salon.name}</h1>
+                        <p className="mt-4 text-lg font-semibold text-gray-700">{salon.address}, {salon.city}</p>
+                        <p className="mt-4 leading-7 text-gray-600">{salon.description || 'Professional grooming and styling appointments.'}</p>
                     </div>
                 </div>
 
-                {/* Booking Section */}
                 <div>
-                    <div className="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-lg border border-gray-700">
-                        <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2 text-white">Book an Appointment</h2>
+                    <div className="sticky top-28 rounded-3xl border border-gray-200 bg-white p-6 shadow-xl">
+                        <h2 className="mb-2 text-2xl font-bold text-gray-950">Book an Appointment</h2>
+                        <p className="mb-5 text-gray-600">Choose an open time and we will reserve it for your customer account.</p>
                         {message && (
-                            <div className={`p-3 rounded mb-4 text-center font-medium ${message.includes('successful') ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-red-900/30 text-red-400 border border-red-800'
+                            <div className={`mb-4 rounded-xl border p-3 text-center font-medium ${message.includes('successful') ? 'border-green-100 bg-green-50 text-green-700' : 'border-red-100 bg-red-50 text-red-700'
                                 }`}>
                                 {message}
                             </div>
                         )}
 
-                        <h3 className="text-lg font-semibold mb-3 text-primary">Available Time Slots</h3>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                            {slots.map(slot => (
+                        <h3 className="mb-3 text-lg font-semibold text-gray-950">Available Time Slots</h3>
+                        {openSlots.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            {openSlots.map(slot => (
                                 <button
                                     key={slot._id}
-                                    disabled={slot.isBooked || bookingLoading}
+                                    disabled={bookingLoading}
                                     onClick={() => handleBook(slot._id)}
-                                    className={`py-2 px-1 rounded-lg border text-sm font-medium transition-all duration-200
-                                        ${slot.isBooked
-                                            ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-800'
-                                            : 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-primary hover:text-black hover:border-primary hover:shadow-md'
-                                        }
-                                    `}
+                                    className="rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm font-bold text-gray-800 transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white hover:shadow-md disabled:cursor-wait disabled:opacity-60"
                                 >
-                                    {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <span className="block">{formatSlotTime(slot.startTime)}</span>
+                                    <span className="mt-1 block text-xs font-semibold opacity-70">{formatSlotDate(slot.startTime)}</span>
                                 </button>
                             ))}
                         </div>
-                        {slots.length === 0 && (
-                            <p className="text-gray-500 text-center py-4 italic">No slots available for this salon.</p>
+                        ) : slots.length > 0 ? (
+                            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-800">
+                                No bookable slots right now. This salon needs to add a future open slot before customers can book.
+                            </div>
+                        ) : (
+                            <p className="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-center text-gray-500">No slots have been added for this salon yet.</p>
+                        )}
+
+                        {unavailableSlots.length > 0 && (
+                            <div className="mt-6 border-t border-gray-100 pt-5">
+                                <h4 className="mb-3 text-sm font-bold uppercase tracking-widest text-gray-500">Unavailable slots</h4>
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                    {unavailableSlots.map(slot => {
+                                        const label = slot.isBooked ? 'Booked' : 'Past';
+                                        return (
+                                            <div
+                                                key={slot._id}
+                                                className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-center text-sm font-bold text-gray-400"
+                                            >
+                                                <span className="block">{formatSlotTime(slot.startTime)}</span>
+                                                <span className="mt-1 block text-xs font-semibold">{label}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
-            </div>
-        </div>
+                </div>
+            </section>
+        </main>
     );
 };
 

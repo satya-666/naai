@@ -6,6 +6,6 @@ const timeSlotSchema = new mongoose.Schema({
     isBooked: { type: Boolean, default: false },
 }, { timestamps: true });
 
-// Prevent duplicate slots for same time/salon? Maybe app logic.
+timeSlotSchema.index({ salonId: 1, startTime: 1 }, { unique: true });
 
 module.exports = mongoose.model('TimeSlot', timeSlotSchema);

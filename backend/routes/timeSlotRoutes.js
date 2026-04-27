@@ -22,13 +22,30 @@ router.post('/', protect, barber, async (req, res) => {
     try {
         const { salonId, startTime } = req.body;
 
+        const salon = await Salon.findById(salonId);
+        if (!salon) {
+            return res.status(404).json({ message: 'Salon not found' });
+        }
+
+        if (salon.barberId.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({ message: 'Not authorized to add slots for this salon' });
+        }
+
+        const slotDate = new Date(startTime);
+        if (Number.isNaN(slotDate.getTime()) || slotDate <= new Date()) {
+            return res.status(400).json({ message: 'Slot time must be in the future' });
+        }
+
         const slot = await TimeSlot.create({
             salonId,
-            startTime,
+            startTime: slotDate,
             isBooked: false
         });
         res.status(201).json(slot);
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'A slot already exists at that time' });
+        }
         res.status(400).json({ message: 'Invalid data' });
     }
 });

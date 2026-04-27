@@ -1,11 +1,11 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
 import AuthContext from '../context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useContext(AuthContext);
     const [scrolled, setScrolled] = useState(false);
-    const location = useLocation();
+    const homePath = user?.role === 'barber' ? '/barber-dashboard' : user?.role === 'admin' ? '/admin-dashboard' : '/';
 
     // Add shadow on scroll
     useEffect(() => {
@@ -23,14 +23,20 @@ const Navbar = () => {
     return (
         <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 py-3' : 'bg-transparent py-5'}`}>
             <div className="container mx-auto px-6 flex justify-between items-center">
-                <Link to="/" className="text-3xl font-black tracking-tighter text-gray-900 flex gap-1 items-center">
+                <Link to={homePath} className="text-3xl font-black tracking-tighter text-gray-900 flex gap-1 items-center">
                     <span className="text-primary">NAAI</span>
                 </Link>
 
                 <div className="hidden md:flex items-center space-x-8">
-                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">Find Salons</Link>
-                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">For Barbers</Link>
-                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">About Us</Link>
+                    {user?.role === 'barber' ? (
+                        <NavLink to="/barber-dashboard" className={({ isActive }) => `font-medium transition-colors ${isActive ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}>Workspace</NavLink>
+                    ) : (
+                        <>
+                            <NavLink to="/search" className={({ isActive }) => `font-medium transition-colors ${isActive ? 'text-primary' : 'text-gray-600 hover:text-primary'}`}>Find Salons</NavLink>
+                            <Link to="/signup" className="text-gray-600 hover:text-primary font-medium transition-colors">For Barbers</Link>
+                            <a href="/#why-naai" className="text-gray-600 hover:text-primary font-medium transition-colors">About Us</a>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center space-x-6">

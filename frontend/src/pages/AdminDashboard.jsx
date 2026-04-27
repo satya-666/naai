@@ -3,11 +3,16 @@ import api from '../api';
 
 const AdminDashboard = () => {
     const [salons, setSalons] = useState([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchSalons = async () => {
-            const res = await api.get('/salons');
-            setSalons(res.data);
+            try {
+                const res = await api.get('/salons?limit=500');
+                setSalons(res.data.salons || []);
+            } catch (err) {
+                setError(err.response?.data?.message || 'Unable to load salons.');
+            }
         };
         fetchSalons();
     }, []);
@@ -17,7 +22,8 @@ const AdminDashboard = () => {
             try {
                 await api.delete(`/salons/${id}`);
                 setSalons(salons.filter(s => s._id !== id));
-            } catch (error) {
+            } catch (err) {
+                console.error(err);
                 alert('Error deleting salon');
             }
         }
@@ -26,7 +32,8 @@ const AdminDashboard = () => {
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-            <div className="bg-white rounded shadowoverflow-hidden">
+            {error && <div className="mb-4 rounded-xl border border-red-100 bg-red-50 p-4 text-red-700">{error}</div>}
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>

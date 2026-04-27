@@ -1,6 +1,132 @@
-import { useEffect, useState, useContext } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import api from '../api';
 import AuthContext from '../context/AuthContext';
+
+const emptyListing = {
+    name: '',
+    address: '',
+    city: '',
+    description: '',
+    image: '',
+    businessKind: 'salon',
+    serviceMode: 'shop',
+    serviceCategory: 'Haircut and grooming',
+};
+
+const businessKindLabels = {
+    salon: 'Salon',
+    shop: 'Shop',
+    independent: 'Independent barber',
+};
+
+const serviceModeLabels = {
+    shop: 'At my shop',
+    'door-to-door': 'Door to door',
+    both: 'Shop and door to door',
+};
+
+const ListingForm = ({ salonData, setSalonData, uploading, uploadFileHandler, isEditing, onCancel, onSubmit, submitLabel }) => (
+    <form onSubmit={onSubmit} className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">Business name</span>
+                <input type="text" placeholder="Your salon or business name" className="premium-input"
+                    value={salonData.name} onChange={(e) => setSalonData({ ...salonData, name: e.target.value })} required />
+            </label>
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">Service category</span>
+                <input type="text" placeholder="Haircut, grooming, spa..." className="premium-input"
+                    value={salonData.serviceCategory} onChange={(e) => setSalonData({ ...salonData, serviceCategory: e.target.value })} required />
+            </label>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">Business kind</span>
+                <select className="premium-input" value={salonData.businessKind} onChange={(e) => setSalonData({ ...salonData, businessKind: e.target.value })}>
+                    <option value="salon">Salon</option>
+                    <option value="shop">Shop</option>
+                    <option value="independent">Independent barber</option>
+                </select>
+            </label>
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">Service mode</span>
+                <select className="premium-input" value={salonData.serviceMode} onChange={(e) => setSalonData({ ...salonData, serviceMode: e.target.value })}>
+                    <option value="shop">At my shop</option>
+                    <option value="door-to-door">Door to door</option>
+                    <option value="both">Shop and door to door</option>
+                </select>
+            </label>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">Address or base area</span>
+                <input type="text" placeholder="Shop address or service area" className="premium-input"
+                    value={salonData.address} onChange={(e) => setSalonData({ ...salonData, address: e.target.value })} required />
+            </label>
+            <label className="space-y-1">
+                <span className="text-sm font-semibold text-gray-700">City</span>
+                <input type="text" placeholder="City" className="premium-input"
+                    value={salonData.city} onChange={(e) => setSalonData({ ...salonData, city: e.target.value })} required />
+            </label>
+        </div>
+
+        <label className="space-y-1">
+            <span className="text-sm font-semibold text-gray-700">Image</span>
+            <div className="flex gap-2">
+                <input type="text" placeholder="Image URL" className="premium-input flex-1"
+                    value={salonData.image} onChange={(e) => setSalonData({ ...salonData, image: e.target.value })} />
+                <div className="relative">
+                    <input type="file" onChange={uploadFileHandler} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                    <button type="button" className="premium-btn h-full whitespace-nowrap px-4 shadow-none">
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+                </div>
+            </div>
+        </label>
+
+        <label className="space-y-1">
+            <span className="text-sm font-semibold text-gray-700">Description</span>
+            <textarea placeholder="Tell customers what you offer" className="premium-input h-28"
+                value={salonData.description} onChange={(e) => setSalonData({ ...salonData, description: e.target.value })} />
+        </label>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+            <button type="submit" className="premium-btn flex-1">{submitLabel}</button>
+            {isEditing && (
+                <button type="button" onClick={onCancel} className="rounded-full border border-gray-200 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+            )}
+        </div>
+    </form>
+);
+
+const BookingList = ({ title, emptyText, items, formatDateTime }) => (
+    <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-950">{title}</h2>
+        {items.length === 0 ? (
+            <p className="mt-4 text-gray-500">{emptyText}</p>
+        ) : (
+            <ul className="mt-5 space-y-3">
+                {items.map((booking) => (
+                    <li key={booking._id} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="font-bold text-gray-950">{booking.userId?.name || 'Customer'}</p>
+                                <p className="text-sm text-gray-500">{booking.userId?.email || 'No email available'}</p>
+                            </div>
+                            <div className="text-sm font-bold text-primary">
+                                {booking.slotId ? formatDateTime(booking.slotId.startTime) : 'No slot'}
+                            </div>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        )}
+    </section>
+);
 
 const BarberDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -8,133 +134,124 @@ const BarberDashboard = () => {
     const [bookings, setBookings] = useState([]);
     const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Form states
     const [newSlotTime, setNewSlotTime] = useState('');
-    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]); const [salonData, setSalonData] = useState({ name: '', address: '', city: '', description: '', image: '' });
+    const [newSlotDate, setNewSlotDate] = useState(new Date().toISOString().split('T')[0]);
+    const [salonData, setSalonData] = useState(emptyListing);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState('');
     const [isEditing, setIsEditing] = useState(false);
 
+    const today = new Date().toISOString().split('T')[0];
+
+    const buildPayload = () => {
+        const payload = { ...salonData };
+        payload.images = payload.image ? [payload.image] : ['/default-salon.jpg'];
+        delete payload.image;
+        return payload;
+    };
+
+    const fetchData = useCallback(async () => {
+        try {
+            const res = await api.get('/salons?limit=500');
+            const mySalon = (res.data.salons || []).find((item) => item.barberId?._id === user._id || item.barberId === user._id);
+            setSalon(mySalon || null);
+
+            if (mySalon) {
+                const [bookingRes, slotsRes] = await Promise.all([
+                    api.get(`/bookings/salon/${mySalon._id}`),
+                    api.get(`/timeslots/${mySalon._id}`),
+                ]);
+                setBookings(bookingRes.data || []);
+                setSlots(slotsRes.data || []);
+            } else {
+                setBookings([]);
+                setSlots([]);
+            }
+        } catch (error) {
+            console.error(error);
+            setMessage('Unable to load your barber workspace.');
+        } finally {
+            setLoading(false);
+        }
+    }, [user._id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
     const uploadFileHandler = async (e) => {
         const file = e.target.files[0];
+        if (!file) return;
+
         const formData = new FormData();
         formData.append('image', file);
         setUploading(true);
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            };
-            const { data } = await api.post('/upload', formData, config);
-            // Result is like "/uploads/image.jpg"
-            // Since backend runs on 5001 and frontend on 5173, we need to ensure the path is full URL or handled by proxy
-            // But typically MERN setup: store path, and when displaying, prepend backend URL if needed.
-            // However, our image src often expects full URL.
-            // Let's store the relative path and assume we prepend API_URL constant or similar if needed, 
-            // OR store full local URL. For simplicity, let's prepend backend URL here if we can knowing it, but hardcoding is bad.
-            // Actually, let's just save the relative path "/uploads/..." and standardise on that.
-            // BUT our existing images are absolute https:// URLs or /default-salon.jpg.
-            // So we should probably prepend backend base URL.
-
-            // Hack for dev: Assume localhost:5001
-            setSalonData({ ...salonData, image: `http://localhost:5001${data}` });
-            setUploading(false);
+            const { data } = await api.post('/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            setSalonData((current) => ({ ...current, image: `http://localhost:5001${data}` }));
         } catch (error) {
             console.error(error);
-            setUploading(false);
             setMessage('File upload failed');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleCreateSalon = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/salons', buildPayload());
+            setMessage('Business listing created. Add your first future slot.');
+            await fetchData();
+        } catch (error) {
+            console.error(error);
+            setMessage(error.response?.data?.message || 'Error creating business listing');
         }
     };
 
     const handleUpdateSalon = async (e) => {
         e.preventDefault();
         try {
-            const payload = { ...salonData };
-            // If image is empty/default-salon.jpg, ensure we keep it consistent or allow updating
-            if (!payload.image) {
-                payload.images = ['/default-salon.jpg'];
-            } else {
-                payload.images = [payload.image];
-            }
-            delete payload.image; // Cleanup before sending
-
-            const res = await api.put(`/salons/${salon._id}`, payload);
+            const res = await api.put(`/salons/${salon._id}`, buildPayload());
             setSalon(res.data);
-            setMessage('Salon updated successfully!');
+            setMessage('Business listing updated.');
             setIsEditing(false);
         } catch (error) {
-            setMessage('Error updating salon');
+            console.error(error);
+            setMessage(error.response?.data?.message || 'Error updating business listing');
         }
     };
 
     const startEditing = () => {
         setSalonData({
-            name: salon.name,
-            address: salon.address,
-            city: salon.city,
-            description: salon.description,
-            image: salon.images && salon.images.length > 0 ? salon.images[0] : ''
+            name: salon.name || '',
+            address: salon.address || '',
+            city: salon.city || '',
+            description: salon.description || '',
+            image: salon.images?.[0] || '',
+            businessKind: salon.businessKind || 'salon',
+            serviceMode: salon.serviceMode || 'shop',
+            serviceCategory: salon.serviceCategory || 'Haircut and grooming',
         });
         setIsEditing(true);
     };
 
-    const fetchData = async () => {
-        try {
-            const res = await api.get('/salons?limit=500');
-            // Better to have /api/salons/mine endpoint, but finding by barberId works for now
-            const mySalon = res.data.salons.find(s => s.barberId._id === user._id || s.barberId === user._id);
-            setSalon(mySalon);
-
-            if (mySalon) {
-                const bookingRes = await api.get(`/bookings/salon/${mySalon._id}`);
-                setBookings(bookingRes.data);
-
-                const slotsRes = await api.get(`/timeslots/${mySalon._id}`);
-                setSlots(slotsRes.data);
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [user._id]);
-
-    const handleCreateSalon = async (e) => {
-        e.preventDefault();
-        try {
-            const payload = { ...salonData };
-            if (!payload.image) {
-                payload.images = ['/default-salon.jpg'];
-            } else {
-                payload.images = [payload.image];
-            }
-            delete payload.image;
-
-            await api.post('/salons', payload);
-            setMessage('Salon created successfully!');
-            fetchData();
-        } catch (error) {
-            setMessage('Error creating salon');
-        }
-    };
-
     const handleDeleteSalon = async () => {
-        if (!window.confirm("Are you sure? This will delete your salon and all bookings permanently.")) return;
+        if (!window.confirm('Delete this business listing and its bookings?')) return;
         try {
             await api.delete(`/salons/${salon._id}`);
             setSalon(null);
-            setMessage('Salon deleted successfully.');
             setBookings([]);
+            setSlots([]);
+            setSalonData(emptyListing);
+            setMessage('Business listing deleted.');
         } catch (error) {
-            setMessage('Failed to delete salon');
+            console.error(error);
+            setMessage('Failed to delete business listing');
         }
-    }
+    };
 
     const handleAddSlot = async (e) => {
         e.preventDefault();
@@ -142,208 +259,168 @@ const BarberDashboard = () => {
 
         try {
             const date = new Date(`${newSlotDate}T${newSlotTime}`);
-
             await api.post('/timeslots', {
                 salonId: salon._id,
-                startTime: date.toISOString()
+                startTime: date.toISOString(),
             });
-            setMessage('Slot added!');
-            // Refresh slots
+            setMessage('Slot added.');
+            setNewSlotTime('');
             const slotsRes = await api.get(`/timeslots/${salon._id}`);
-            setSlots(slotsRes.data);
+            setSlots(slotsRes.data || []);
         } catch (error) {
-            setMessage('Error adding slot');
+            console.error(error);
+            setMessage(error.response?.data?.message || 'Error adding slot');
         }
     };
 
     const handleDeleteSlot = async (slotId) => {
-        if (!window.confirm("Delete this slot?")) return;
+        if (!window.confirm('Delete this open slot?')) return;
         try {
             await api.delete(`/timeslots/${slotId}`);
-            setSlots(slots.filter(s => s._id !== slotId));
-            setMessage('Slot deleted');
+            setSlots((current) => current.filter((slot) => slot._id !== slotId));
+            setMessage('Slot deleted.');
         } catch (error) {
+            console.error(error);
             setMessage('Error deleting slot');
         }
     };
 
-    // Group slots by date for calendar view
-    const groupedSlots = slots.reduce((acc, slot) => {
-        const date = new Date(slot.startTime).toLocaleDateString();
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(slot);
-        return acc;
-    }, {});
+    const now = useMemo(() => new Date(), []);
+    const futureBookings = useMemo(
+        () => bookings.filter((booking) => booking.slotId && new Date(booking.slotId.startTime) >= now),
+        [bookings, now]
+    );
+    const pastBookings = useMemo(
+        () => bookings.filter((booking) => booking.slotId && new Date(booking.slotId.startTime) < now),
+        [bookings, now]
+    );
+    const openFutureSlots = slots.filter((slot) => !slot.isBooked && new Date(slot.startTime) >= now);
+    const unavailableSlots = slots.filter((slot) => slot.isBooked || new Date(slot.startTime) < now);
 
-    if (loading) return <div className="p-10 text-center text-primary">Loading...</div>;
+    const formatDateTime = (dateValue) => new Date(dateValue).toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    if (loading) return <div className="p-10 text-center text-gray-600">Loading barber workspace...</div>;
 
     return (
-        <div className="container mx-auto p-6 min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 text-primary font-serif">Manage Your Salon</h1>
-
-            {message && <div className="p-4 bg-gray-800 border border-primary text-primary rounded-lg mb-6 shadow-lg shadow-yellow-900/10 animate-pulse">{message}</div>}
-
-            {!salon ? (
-                <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-2xl max-w-xl mx-auto">
-                    <h2 className="text-2xl font-bold mb-6 text-white font-serif">Establish Your Brand</h2>
-                    <form onSubmit={handleCreateSalon} className="space-y-5">
-                        <input type="text" placeholder="Salon Name" className="premium-input"
-                            value={salonData.name} onChange={e => setSalonData({ ...salonData, name: e.target.value })} required />
-                        <input type="text" placeholder="Address" className="premium-input"
-                            value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
-                        <input type="text" placeholder="City" className="premium-input"
-                            value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
-
-                        <div className="space-y-2">
-                            <label className="text-gray-400 text-sm ml-1">Salon Image</label>
-                            <div className="flex gap-2">
-                                <input type="text" placeholder="Enter URL" className="premium-input flex-1"
-                                    value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
-                                <div className="relative">
-                                    <input type="file" onChange={uploadFileHandler} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                    <button type="button" className="premium-btn px-4 h-full flex items-center justify-center whitespace-nowrap bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white shadow-none">
-                                        {uploading ? 'Uploading...' : 'Upload'}
-                                    </button>
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 ml-1">Or leave empty for default</p>
-                        </div>
-
-                        <textarea placeholder="Description" className="premium-input h-32"
-                            value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
-                        <button type="submit" className="premium-btn w-full">Create Salon</button>
-                    </form>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Salon Management */}
-                    <div className="space-y-8">
-                        <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-lg relative group">
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={startEditing} className="text-blue-500 hover:text-blue-400 text-sm uppercase font-bold tracking-widest border border-blue-900 px-3 py-1 rounded hover:bg-blue-900/20 transition-all">
-                                    Edit
-                                </button>
-                                <button onClick={handleDeleteSalon} className="text-red-500 hover:text-red-400 text-sm uppercase font-bold tracking-widest border border-red-900 px-3 py-1 rounded hover:bg-red-900/20 transition-all">
-                                    Delete
-                                </button>
-                            </div>
-
-                            {isEditing ? (
-                                <form onSubmit={handleUpdateSalon} className="space-y-4 mb-4">
-                                    <input type="text" placeholder="Salon Name" className="premium-input"
-                                        value={salonData.name} onChange={e => setSalonData({ ...salonData, name: e.target.value })} required />
-                                    <input type="text" placeholder="Address" className="premium-input"
-                                        value={salonData.address} onChange={e => setSalonData({ ...salonData, address: e.target.value })} required />
-                                    <input type="text" placeholder="City" className="premium-input"
-                                        value={salonData.city} onChange={e => setSalonData({ ...salonData, city: e.target.value })} required />
-
-                                    <div className="space-y-2">
-                                        <label className="text-gray-400 text-sm ml-1">Salon Image</label>
-                                        <div className="flex gap-2">
-                                            <input type="text" placeholder="Enter URL" className="premium-input flex-1"
-                                                value={salonData.image} onChange={e => setSalonData({ ...salonData, image: e.target.value })} />
-                                            <div className="relative">
-                                                <input type="file" onChange={uploadFileHandler} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                                <button type="button" className="premium-btn px-4 h-full flex items-center justify-center whitespace-nowrap bg-gray-700 hover:bg-gray-600 border border-gray-600 text-white shadow-none">
-                                                    {uploading ? '...' : 'Upload'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <textarea placeholder="Description" className="premium-input h-24"
-                                        value={salonData.description} onChange={e => setSalonData({ ...salonData, description: e.target.value })}></textarea>
-                                    <div className="flex gap-2">
-                                        <button type="submit" className="premium-btn flex-1">Save Changes</button>
-                                        <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 border border-gray-600 text-gray-300 rounded-full hover:bg-gray-700">Cancel</button>
-                                    </div>
-                                </form>
-                            ) : (
-                                <>
-                                    <img src={salon.images[0]} alt={salon.name} className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700" />
-                                    <h2 className="text-2xl font-bold mb-2 text-white font-serif">{salon.name}</h2>
-                                    <p className="text-gray-400 mb-4">{salon.address}, {salon.city}</p>
-                                    <p className="text-gray-500 text-sm mb-6">{salon.description}</p>
-                                </>
-                            )}
-
-                            <div className="border-t border-gray-700 pt-6">
-                                <h3 className="font-semibold mb-4 text-primary tracking-wide uppercase text-sm">Add Time Slot</h3>
-                                <form onSubmit={handleAddSlot} className="flex gap-4">
-                                    <input type="date" className="premium-input w-1/3"
-                                        value={newSlotDate} onChange={e => setNewSlotDate(e.target.value)} required />
-                                    <input type="time" className="premium-input flex-1"
-                                        value={newSlotTime} onChange={e => setNewSlotTime(e.target.value)} required />
-                                    <button type="submit" className="premium-btn">Add Slot</button>
-                                </form>
-                            </div>
-                        </div>
-
-                        {/* Calendar / Slot List */}
-                        <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-lg">
-                            <h2 className="text-xl font-bold mb-4 text-white font-serif">Manage Slots</h2>
-                            <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                {Object.keys(groupedSlots).length === 0 ? <p className="text-gray-500">No slots created.</p> :
-                                    Object.entries(groupedSlots).map(([date, daySlots]) => (
-                                        <div key={date}>
-                                            <h4 className="text-primary font-bold mb-2">{date}</h4>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                                {daySlots.map(slot => (
-                                                    <div key={slot._id} className={`p-2 rounded border text-center relative group
-                                                        ${slot.isBooked ? 'bg-red-900/20 border-red-900 text-red-400' : 'bg-green-900/20 border-green-900 text-green-400'}
-                                                    `}>
-                                                        <span className="text-sm font-semibold">
-                                                            {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                        {!slot.isBooked && (
-                                                            <button
-                                                                onClick={() => handleDeleteSlot(slot._id)}
-                                                                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            >
-                                                                ×
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bookings */}
+        <main className="min-h-screen bg-bg-light">
+            <div className="container-custom py-8">
+                <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                     <div>
-                        <div className="bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-lg">
-                            <h2 className="text-xl font-bold mb-6 text-white font-serif border-b border-gray-700 pb-4">Upcoming Appointments</h2>
-                            {bookings.length === 0 ? <p className="text-gray-500 italic">No appointments scheduled yet.</p> : (
-                                <ul className="space-y-4">
-                                    {bookings.map(b => (
-                                        <li key={b._id} className="bg-gray-900/50 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <p className="font-semibold text-gray-200">{b.userId ? b.userId.name : 'Guest User'}</p>
-                                                    <p className="text-xs text-gray-500 mt-1">{b.userId?.email}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-primary font-bold">
-                                                        {new Date(b.slotId.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {new Date(b.slotId.startTime).toLocaleDateString()}
-                                                    </p>
-                                                </div>
+                        <p className="text-sm font-bold uppercase tracking-widest text-primary">Barber workspace</p>
+                        <h1 className="mt-2 text-4xl font-black text-gray-950">Run your business</h1>
+                        <p className="mt-3 max-w-2xl text-gray-600">List your salon, shop, or door-to-door service, add future slots, and track all bookings from one place.</p>
+                    </div>
+                    {salon && <button onClick={startEditing} className="btn-secondary w-fit">Edit listing</button>}
+                </div>
+
+                {message && <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-4 font-medium text-primary">{message}</div>}
+
+                {!salon ? (
+                    <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xl md:p-8">
+                        <h2 className="mb-2 text-2xl font-bold text-gray-950">Create your business listing</h2>
+                        <p className="mb-6 text-gray-600">Choose whether you operate from a shop, visit customers door to door, or do both.</p>
+                        <ListingForm
+                            salonData={salonData}
+                            setSalonData={setSalonData}
+                            uploading={uploading}
+                            uploadFileHandler={uploadFileHandler}
+                            isEditing={isEditing}
+                            onCancel={() => setIsEditing(false)}
+                            onSubmit={handleCreateSalon}
+                            submitLabel="Create listing"
+                        />
+                    </section>
+                ) : (
+                    <div className="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+                        <div className="space-y-8">
+                            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                                {isEditing ? (
+                                    <>
+                                        <h2 className="mb-2 text-2xl font-bold text-gray-950">Edit business listing</h2>
+                                        <p className="mb-6 text-gray-600">Update how customers discover your service.</p>
+                                        <ListingForm
+                                            salonData={salonData}
+                                            setSalonData={setSalonData}
+                                            uploading={uploading}
+                                            uploadFileHandler={uploadFileHandler}
+                                            isEditing={isEditing}
+                                            onCancel={() => setIsEditing(false)}
+                                            onSubmit={handleUpdateSalon}
+                                            submitLabel="Save listing"
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <img src={salon.images?.[0] || '/default-salon.jpg'} alt={salon.name} className="mb-5 h-52 w-full rounded-2xl border border-gray-200 object-cover" />
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">{businessKindLabels[salon.businessKind] || 'Salon'}</span>
+                                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-gray-600">{serviceModeLabels[salon.serviceMode] || 'At my shop'}</span>
+                                        </div>
+                                        <h2 className="mt-4 text-3xl font-black text-gray-950">{salon.name}</h2>
+                                        <p className="mt-2 font-semibold text-gray-700">{salon.serviceCategory || 'Haircut and grooming'}</p>
+                                        <p className="mt-2 text-gray-600">{salon.address}, {salon.city}</p>
+                                        <p className="mt-4 text-gray-600">{salon.description || 'No description added yet.'}</p>
+                                        <button onClick={handleDeleteSalon} className="mt-6 text-sm font-bold text-red-600 hover:text-red-700">Delete listing</button>
+                                    </>
+                                )}
+                            </section>
+
+                            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                                <h2 className="text-2xl font-bold text-gray-950">Add future slots</h2>
+                                <p className="mt-2 text-gray-600">Customers can only book future open slots.</p>
+                                <form onSubmit={handleAddSlot} className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                                    <input type="date" className="premium-input" min={today} value={newSlotDate} onChange={(e) => setNewSlotDate(e.target.value)} required />
+                                    <input type="time" className="premium-input" value={newSlotTime} onChange={(e) => setNewSlotTime(e.target.value)} required />
+                                    <button type="submit" className="premium-btn whitespace-nowrap">Add Slot</button>
+                                </form>
+                            </section>
+
+                            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                                <h2 className="text-xl font-bold text-gray-950">Open future slots</h2>
+                                {openFutureSlots.length === 0 ? (
+                                    <p className="mt-4 text-gray-500">No bookable future slots yet.</p>
+                                ) : (
+                                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                        {openFutureSlots.map((slot) => (
+                                            <div key={slot._id} className="flex items-center justify-between rounded-2xl border border-green-100 bg-green-50 p-3">
+                                                <span className="font-bold text-green-700">{formatDateTime(slot.startTime)}</span>
+                                                <button onClick={() => handleDeleteSlot(slot._id)} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-red-600 shadow-sm">Delete</button>
                                             </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                                <h2 className="text-xl font-bold text-gray-950">Booked and past slots</h2>
+                                {unavailableSlots.length === 0 ? (
+                                    <p className="mt-4 text-gray-500">No booked or past slots yet.</p>
+                                ) : (
+                                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                                        {unavailableSlots.map((slot) => (
+                                            <div key={slot._id} className="rounded-2xl border border-gray-200 bg-gray-50 p-3">
+                                                <p className="font-bold text-gray-700">{formatDateTime(slot.startTime)}</p>
+                                                <p className="text-sm text-gray-500">{slot.isBooked ? 'Booked' : 'Past open slot'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                        </div>
+
+                        <div className="space-y-8">
+                            <BookingList title="Future bookings" emptyText="No future customer bookings yet." items={futureBookings} formatDateTime={formatDateTime} />
+                            <BookingList title="Past bookings" emptyText="No past bookings yet." items={pastBookings} formatDateTime={formatDateTime} />
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </main>
     );
 };
 

@@ -75,7 +75,7 @@ router.get('/:id', async (req, res) => {
 // @access  Barber/Admin
 router.post('/', protect, barber, async (req, res) => {
     try {
-        const { name, address, city, description, images } = req.body;
+        const { name, address, city, description, images, businessKind, serviceMode, serviceCategory } = req.body;
 
         // Random placeholder images if none provided
         const salonImages = images && images.length > 0 ? images : [
@@ -88,6 +88,9 @@ router.post('/', protect, barber, async (req, res) => {
             address,
             city,
             description,
+            businessKind,
+            serviceMode,
+            serviceCategory,
             barberId: req.user._id,
             images: salonImages
         });
@@ -116,6 +119,9 @@ router.put('/:id', protect, barber, async (req, res) => {
             salon.address = req.body.address || salon.address;
             salon.city = req.body.city || salon.city;
             salon.description = req.body.description || salon.description;
+            salon.businessKind = req.body.businessKind || salon.businessKind;
+            salon.serviceMode = req.body.serviceMode || salon.serviceMode;
+            salon.serviceCategory = req.body.serviceCategory || salon.serviceCategory;
             if (req.body.images) salon.images = req.body.images;
 
             const updatedSalon = await salon.save();
