@@ -179,7 +179,7 @@ const BarberDashboard = () => {
 
     return (
         <div className="container mx-auto p-6 min-h-screen">
-            <h1 className="text-3xl font-bold mb-8 text-primary font-serif">Manage Your Salon</h1>
+            <h1 className="text-3xl font-bold mb-8 text-white font-serif">Manage Your Salon</h1>
 
             {message && <div className="p-4 bg-gray-800 border border-primary text-primary rounded-lg mb-6 shadow-lg shadow-yellow-900/10 animate-pulse">{message}</div>}
 
@@ -262,13 +262,13 @@ const BarberDashboard = () => {
                                 <>
                                     <img src={salon.images[0]} alt={salon.name} className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700" />
                                     <h2 className="text-2xl font-bold mb-2 text-white font-serif">{salon.name}</h2>
-                                    <p className="text-gray-400 mb-4">{salon.address}, {salon.city}</p>
-                                    <p className="text-gray-500 text-sm mb-6">{salon.description}</p>
+                                    <p className="text-gray-300 mb-4">{salon.address}, {salon.city}</p>
+                                    <p className="text-gray-400 text-sm mb-6">{salon.description}</p>
                                 </>
                             )}
 
                             <div className="border-t border-gray-700 pt-6">
-                                <h3 className="font-semibold mb-4 text-primary tracking-wide uppercase text-sm">Add Time Slot</h3>
+                                <h3 className="font-semibold mb-4 text-blue-400 tracking-wide uppercase text-sm">Add Time Slot</h3>
                                 <form onSubmit={handleAddSlot} className="flex gap-4">
                                     <input type="date" className="premium-input w-1/3"
                                         value={newSlotDate} onChange={e => setNewSlotDate(e.target.value)} required />
@@ -286,7 +286,7 @@ const BarberDashboard = () => {
                                 {Object.keys(groupedSlots).length === 0 ? <p className="text-gray-500">No slots created.</p> :
                                     Object.entries(groupedSlots).map(([date, daySlots]) => (
                                         <div key={date}>
-                                            <h4 className="text-primary font-bold mb-2">{date}</h4>
+                                            <h4 className="text-blue-400 font-bold mb-2">{date}</h4>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                                 {daySlots.map(slot => (
                                                     <div key={slot._id} className={`p-2 rounded border text-center relative group
@@ -327,7 +327,7 @@ const BarberDashboard = () => {
                                                     <p className="text-xs text-gray-500 mt-1">{b.userId?.email}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-primary font-bold">
+                                                    <p className="text-blue-400 font-bold">
                                                         {new Date(b.slotId.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
