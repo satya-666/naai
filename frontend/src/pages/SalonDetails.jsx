@@ -60,7 +60,7 @@ const SalonDetails = () => {
                 {/* Salon Info */}
                 <div>
                     <img
-                        src={salon.images[0] || "https://via.placeholder.com/600x400"}
+                        src={salon.images?.[0] || "/salon-placeholder.png"}
                         alt={salon.name}
                         className="w-full h-80 object-cover rounded-xl shadow-lg mb-6 border border-gray-700"
                     />

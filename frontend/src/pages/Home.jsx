@@ -52,9 +52,8 @@ const Home = () => {
                     <div className="container-custom grid md:grid-cols-2 gap-16 items-center w-full">
                         <div className="order-2 md:order-1">
                             <div className="bg-white p-8 rounded-2xl shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                                {/* Placeholder for feature image */}
-                                <div className="bg-gray-100 rounded-xl h-64 w-full flex items-center justify-center text-gray-400">
-                                    Booking Interface Preview
+                                <div className="bg-white p-4 rounded-2xl shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-500 max-w-sm mx-auto">
+                                    <img src="/booking-preview.png" alt="Booking Interface Preview" className="w-full h-auto rounded-xl object-cover shadow-inner" />
                                 </div>
                             </div>
                         </div>
@@ -97,7 +96,7 @@ const Home = () => {
                                     <div key={salon._id} className="card-minimal group cursor-pointer">
                                         <div className="h-64 overflow-hidden rounded-xl mb-6 relative">
                                             <img
-                                                src={salon.images[0] || "https://via.placeholder.com/600x400"}
+                                                src={salon.images?.[0] || "/salon-placeholder.png"}
                                                 alt={salon.name}
                                                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                                             />
