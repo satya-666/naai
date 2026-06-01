@@ -63,6 +63,7 @@ const SalonDetails = () => {
                         src={salon.images?.[0] || "/salon-placeholder.png"}
                         alt={salon.name}
                         className="w-full h-80 object-cover rounded-xl shadow-lg mb-6 border border-gray-700"
+                        onError={(e) => { e.target.onerror = null; e.target.src = "/salon-placeholder.png" }}
                     />
                     <div className="bg-gray-800/80 backdrop-blur-md p-6 rounded-xl shadow-sm border border-gray-700">
                         <p className="text-lg text-gray-300 mb-2 font-semibold">📍 {salon.address}, {salon.city}</p>

@@ -99,6 +99,7 @@ const Home = () => {
                                                 src={salon.images?.[0] || "/salon-placeholder.png"}
                                                 alt={salon.name}
                                                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                                onError={(e) => { e.target.onerror = null; e.target.src = "/salon-placeholder.png" }}
                                             />
                                             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                                 {salon.city}
@@ -121,11 +122,27 @@ const Home = () => {
                 </FlowSection>
 
                 {/* CTA Section */}
-                <FlowSection style={{ backgroundColor: '#116bf0' }} className="text-white">
-                    <div className="container-custom text-center w-full flex flex-col items-center justify-center">
-                        <h2 className="text-4xl md:text-6xl font-bold mb-8 text-white">Ready to get started?</h2>
-                        <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">Join thousands of others who have already booked their next appointment with ease.</p>
-                        <Link to="/signup" className="bg-white text-primary font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition-colors shadow-xl">Start Booking Now</Link>
+                <FlowSection style={{ backgroundColor: '#116bf0' }} className="text-white relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.3) 0%, transparent 50%)' }}></div>
+                    <div className="container-custom w-full">
+                        <div className="grid md:grid-cols-2 gap-12 items-center relative z-10 py-8 md:py-16">
+                            <div className="text-left">
+                                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">Elevate Your Style. <br/><span className="text-blue-200">Book Today.</span></h2>
+                                <p className="text-lg md:text-xl text-blue-50 mb-10 max-w-lg leading-relaxed">
+                                    Join thousands of others who have already booked their next appointment with ease. Experience premium service at your fingertips.
+                                </p>
+                                <div className="flex flex-wrap gap-4">
+                                    <Link to="/signup" className="bg-white text-primary font-bold py-4 px-8 rounded-full hover:bg-gray-100 transition-all shadow-xl hover:-translate-y-1">Start Booking Now</Link>
+                                    <Link to="/search" className="bg-transparent border border-blue-200 text-white font-bold py-4 px-8 rounded-full hover:bg-blue-700/50 transition-all">Explore Salons</Link>
+                                </div>
+                            </div>
+                            <div className="hidden md:block">
+                                <div className="relative rounded-3xl overflow-hidden shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500 border-4 border-white/20">
+                                    <img src="/cta-image.png" alt="Premium Salon Experience" className="w-full h-[400px] object-cover" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </FlowSection>
             </FlowArt>
