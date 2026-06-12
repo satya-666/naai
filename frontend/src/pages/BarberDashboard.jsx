@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import api from '../api';
+import api, { API_BASE_URL } from '../api';
 import AuthContext from '../context/AuthContext';
 
 const BarberDashboard = () => {
@@ -38,8 +38,7 @@ const BarberDashboard = () => {
             // BUT our existing images are absolute https:// URLs or /default-salon.jpg.
             // So we should probably prepend backend base URL.
 
-            // Hack for dev: Assume localhost:5001
-            setSalonData({ ...salonData, image: `http://localhost:5001${data}` });
+            setSalonData({ ...salonData, image: `${API_BASE_URL}${data}` });
             setUploading(false);
         } catch (error) {
             console.error(error);

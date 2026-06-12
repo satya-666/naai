@@ -17,7 +17,10 @@ const Signup = () => {
             await signup(name, email, password, role);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Signup failed');
+            setError(
+                err.response?.data?.message
+                || (err.request ? 'Cannot reach server. Start the backend with: npm run server' : 'Signup failed')
+            );
         }
     };
 
