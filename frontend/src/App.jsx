@@ -10,6 +10,7 @@ import BarberDashboard from './pages/BarberDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import DemoPage from './pages/DemoPage';
+import AppDownloadPrompt from './components/AppDownloadPrompt';
 
 // Placeholder components if they don't exist yet to prevent crash
 const Placeholder = ({ title }) => <div className="p-10 text-xl text-center">{title} Page (Coming Soon)</div>;
@@ -31,6 +32,7 @@ function App() {
             <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
             <Route path="/demo" element={<DemoPage />} />
           </Routes>
+          <AppDownloadPrompt />
         </div>
       </Router>
     </AuthProvider>

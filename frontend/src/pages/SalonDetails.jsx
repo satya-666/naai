@@ -83,25 +83,41 @@ const SalonDetails = () => {
                         )}
 
                         <h3 className="text-lg font-semibold mb-3 text-primary">Available Time Slots</h3>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                            {slots.map(slot => (
-                                <button
-                                    key={slot._id}
-                                    disabled={slot.isBooked || bookingLoading}
-                                    onClick={() => handleBook(slot._id)}
-                                    className={`py-2 px-1 rounded-lg border text-sm font-medium transition-all duration-200
-                                        ${slot.isBooked
-                                            ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-800'
-                                            : 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-primary hover:text-black hover:border-primary hover:shadow-md'
-                                        }
-                                    `}
-                                >
-                                    {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </button>
-                            ))}
-                        </div>
+                        {Object.keys(
+                            slots.reduce((acc, slot) => {
+                                const d = new Date(slot.startTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                                if (!acc[d]) acc[d] = [];
+                                acc[d].push(slot);
+                                return acc;
+                            }, {})
+                        ).map((dateStr) => {
+                            const dateSlots = slots.filter(s => new Date(s.startTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) === dateStr);
+                            return (
+                                <div key={dateStr} className="mb-4">
+                                    <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">{dateStr}</p>
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                        {dateSlots.map(slot => (
+                                            <button
+                                                key={slot._id}
+                                                disabled={slot.isBooked || bookingLoading}
+                                                onClick={() => handleBook(slot._id)}
+                                                className={`py-2.5 px-2 rounded-xl border text-xs font-semibold transition-all duration-200 shadow-sm
+                                                    ${slot.isBooked
+                                                        ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-800'
+                                                        : 'bg-gray-700/80 border-gray-600 text-gray-100 hover:bg-primary hover:text-white hover:border-primary hover:scale-105 active:scale-95'
+                                                    }
+                                                `}
+                                            >
+                                                {new Date(slot.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {slot.isBooked && <span className="block text-[10px] text-gray-500 mt-0.5">Booked</span>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
                         {slots.length === 0 && (
-                            <p className="text-gray-500 text-center py-4 italic">No slots available for this salon.</p>
+                            <p className="text-gray-400 text-center py-6 italic border border-dashed border-gray-700 rounded-xl">No available slots found for this salon.</p>
                         )}
                     </div>
                 </div>

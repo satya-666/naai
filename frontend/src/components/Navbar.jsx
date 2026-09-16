@@ -30,7 +30,10 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center space-x-8">
                     <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">Find Salons</Link>
                     <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">For Barbers</Link>
-                    <Link to="/" className="text-gray-600 hover:text-primary font-medium transition-colors">About Us</Link>
+                    <a href="/SalonNaai.apk" download="SalonNaai.apk" className="text-primary hover:text-primary-dark font-semibold flex items-center gap-1.5 transition-colors bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+                        <span>📲</span>
+                        <span>Get App</span>
+                    </a>
                 </div>
 
                 <div className="flex items-center space-x-6">

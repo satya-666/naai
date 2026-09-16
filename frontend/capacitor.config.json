@@ -1,0 +1,12 @@
+{
+  "appId": "com.salon.naai",
+  "appName": "Salon Naai",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
